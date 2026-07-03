@@ -273,7 +273,7 @@ function saveState() {
 }
 
 function loadSettings() {
-  const defaults = { provider: "openai", baseUrl: "https://api.openai.com/v1", model: "gpt-image-1", endpoint: "", deployment: "gpt-image-1", quality: "high" };
+  const defaults = { provider: "openai", baseUrl: "https://api.openai.com/v1", model: "gpt-image-1", endpoint: "", deployment: "gpt-image-2", quality: "high" };
   const raw = localStorage.getItem(SETTINGS_KEY);
   if (!raw) return defaults;
   try {
@@ -455,7 +455,7 @@ function providerFields(settings) {
   if (settings.provider === "azure") {
     const endpoint = el("input", { value: settings.endpoint, placeholder: "https://your-resource.cognitiveservices.azure.com" });
     const endpointWrap = el("div"); endpointWrap.append(el("label", { textContent: "Endpoint" }), endpoint);
-    const deployment = el("input", { value: settings.deployment, placeholder: "gpt-image-1" });
+    const deployment = el("input", { value: settings.deployment, placeholder: "gpt-image-2" });
     const deploymentWrap = el("div"); deploymentWrap.append(el("label", { textContent: "Deployment name" }), deployment);
     g.append(endpointWrap, deploymentWrap, qualityWrap);
     const save = () => saveSettings({ ...settings, provider: "azure", endpoint: endpoint.value.trim(), deployment: deployment.value.trim(), quality: quality.value.trim() });

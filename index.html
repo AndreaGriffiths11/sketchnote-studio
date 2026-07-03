@@ -679,7 +679,7 @@ function imageSize(orientation, settings) {
 function genUrl(settings, kind) {
   if (settings.provider === "azure") {
     const base = String(settings.endpoint || "").replace(/\/+$/, "");
-    return `${base}/openai/v1/images/${kind}?api-version=preview`;
+    return `${base}/openai/v1/images/${kind}`;
   }
   return `${String(settings.baseUrl || "").replace(/\/+$/, "")}/images/${kind}`;
 }

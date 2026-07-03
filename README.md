@@ -40,7 +40,7 @@ Use a `gpt-image` model you deployed in Azure AI Foundry (or Azure OpenAI). Swit
 - **Deployment name**: the name you gave the deployment, like `gpt-image-2`. This goes in the request as the `model`.
 - **Key**: a resource key for that endpoint, entered the same way as any other key and kept in memory only.
 
-The app calls `POST {endpoint}/openai/v1/images/{generations|edits}?api-version=preview` with an `api-key` header and your deployment name as `model` in the body. That `preview` version is the version-proof surface Azure recommends, so there is no dated API version to keep up with. Your avatar works as a reference with gpt-image deployments.
+The app calls `POST {endpoint}/openai/v1/images/{generations|edits}` with an `api-key` header and your deployment name as `model` in the body. The `/openai/v1/` path is Azure's version-proof surface, so there is no dated API version to keep up with and no `api-version` query parameter. Your avatar works as a reference with gpt-image deployments.
 
 If Generate reports that it could not reach the provider, the key or endpoint was most likely wrong. Browsers hide the provider's error details on cross-origin failures, so the message stays generic.
 

@@ -37,11 +37,10 @@ Change the Base URL to point at any OpenAI-compatible endpoint (OpenRouter, a lo
 Use a `gpt-image` model you deployed in Azure AI Foundry (or Azure OpenAI). Switch the provider to Azure and fill in:
 
 - **Endpoint**: your resource URL, like `https://your-resource.cognitiveservices.azure.com`.
-- **Deployment name**: the name you gave the deployment, like `gpt-image-2`. The deployment is the model, so there is no separate model field.
-- **API version**: defaults to `2025-04-01-preview`.
+- **Deployment name**: the name you gave the deployment, like `gpt-image-2`. This goes in the request as the `model`.
 - **Key**: a resource key for that endpoint, entered the same way as any other key and kept in memory only.
 
-The app calls `POST {endpoint}/openai/deployments/{deployment}/images/{generations|edits}?api-version={version}` with an `api-key` header. Your avatar works as a reference with gpt-image deployments.
+The app calls `POST {endpoint}/openai/v1/images/{generations|edits}?api-version=preview` with an `api-key` header and your deployment name as `model` in the body. That `preview` version is the version-proof surface Azure recommends, so there is no dated API version to keep up with. Your avatar works as a reference with gpt-image deployments.
 
 If Generate reports that it could not reach the provider, the key or endpoint was most likely wrong. Browsers hide the provider's error details on cross-origin failures, so the message stays generic.
 

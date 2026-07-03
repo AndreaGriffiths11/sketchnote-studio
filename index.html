@@ -273,7 +273,7 @@ function saveState() {
 }
 
 function loadSettings() {
-  const defaults = { provider: "openai", baseUrl: "https://api.openai.com/v1", model: "gpt-image-1", endpoint: "", deployment: "gpt-image-1", apiVersion: "2025-04-01-preview", quality: "high" };
+  const defaults = { provider: "openai", baseUrl: "https://api.openai.com/v1", model: "gpt-image-1", endpoint: "", deployment: "gpt-image-1", quality: "high" };
   const raw = localStorage.getItem(SETTINGS_KEY);
   if (!raw) return defaults;
   try {
@@ -284,7 +284,6 @@ function loadSettings() {
       model: p.model ?? defaults.model,
       endpoint: p.endpoint ?? defaults.endpoint,
       deployment: p.deployment ?? defaults.deployment,
-      apiVersion: p.apiVersion ?? defaults.apiVersion,
       quality: p.quality ?? defaults.quality,
     };
   } catch { return defaults; }
@@ -297,7 +296,6 @@ function saveSettings(settings) {
     model: settings.model,
     endpoint: settings.endpoint,
     deployment: settings.deployment,
-    apiVersion: settings.apiVersion,
     quality: settings.quality,
   };
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(safe));
@@ -444,7 +442,7 @@ function field(labelText, value, onChange, multiline) {
 
 function providerHint(provider) {
   if (provider === "azure") {
-    return "Azure AI Foundry: paste your resource endpoint (ends in cognitiveservices.azure.com or openai.azure.com), the image deployment name, and the resource key. The avatar reference works with gpt-image deployments.";
+    return "Azure AI Foundry: paste your resource endpoint (ends in cognitiveservices.azure.com or openai.azure.com), the image deployment name, and the resource key. The app uses the version-proof v1 preview API, so there is no API version to set. The avatar reference works with gpt-image deployments.";
   }
   return "OpenAI: gpt-image-1 uses your avatar and needs a verified org. dall-e-3 needs no verification but ignores the avatar. Other OpenAI-compatible endpoints work by changing the base URL.";
 }
@@ -459,11 +457,9 @@ function providerFields(settings) {
     const endpointWrap = el("div"); endpointWrap.append(el("label", { textContent: "Endpoint" }), endpoint);
     const deployment = el("input", { value: settings.deployment, placeholder: "gpt-image-1" });
     const deploymentWrap = el("div"); deploymentWrap.append(el("label", { textContent: "Deployment name" }), deployment);
-    const apiVersion = el("input", { value: settings.apiVersion });
-    const apiVersionWrap = el("div"); apiVersionWrap.append(el("label", { textContent: "API version" }), apiVersion);
-    g.append(endpointWrap, deploymentWrap, apiVersionWrap, qualityWrap);
-    const save = () => saveSettings({ ...settings, provider: "azure", endpoint: endpoint.value.trim(), deployment: deployment.value.trim(), apiVersion: apiVersion.value.trim(), quality: quality.value.trim() });
-    for (const input of [endpoint, deployment, apiVersion, quality]) input.addEventListener("input", save);
+    g.append(endpointWrap, deploymentWrap, qualityWrap);
+    const save = () => saveSettings({ ...settings, provider: "azure", endpoint: endpoint.value.trim(), deployment: deployment.value.trim(), quality: quality.value.trim() });
+    for (const input of [endpoint, deployment, quality]) input.addEventListener("input", save);
     return g;
   }
 
@@ -683,7 +679,7 @@ function imageSize(orientation, settings) {
 function genUrl(settings, kind) {
   if (settings.provider === "azure") {
     const base = String(settings.endpoint || "").replace(/\/+$/, "");
-    return `${base}/openai/deployments/${encodeURIComponent(settings.deployment)}/images/${kind}?api-version=${encodeURIComponent(settings.apiVersion)}`;
+    return `${base}/openai/v1/images/${kind}?api-version=preview`;
   }
   return `${String(settings.baseUrl || "").replace(/\/+$/, "")}/images/${kind}`;
 }
@@ -691,7 +687,6 @@ function genUrl(settings, kind) {
 function azureConfigProblem(settings) {
   if (!/^https:\/\/.+/i.test(String(settings.endpoint || "").trim())) return "Add your Azure endpoint URL in Settings (it starts with https://).";
   if (!String(settings.deployment || "").trim()) return "Add your Azure deployment name in Settings.";
-  if (!String(settings.apiVersion || "").trim()) return "Add your Azure API version in Settings.";
   return "";
 }
 
@@ -702,6 +697,7 @@ function authHeaders(settings) {
 function genBody(settings, prompt, size) {
   const body = { prompt, size, n: 1 };
   if (settings.provider === "azure") {
+    body.model = settings.deployment;
     body.quality = settings.quality || "high";
     return body;
   }
@@ -750,7 +746,7 @@ async function genText(settings, prompt, size) {
 async function genEdit(settings, prompt, size) {
   const blob = await (await fetch(state.headshot.dataUrl)).blob();
   const form = new FormData();
-  if (settings.provider !== "azure") form.append("model", settings.model);
+  form.append("model", settings.provider === "azure" ? settings.deployment : settings.model);
   form.append("image", blob, state.headshot.name || "avatar.png");
   form.append("prompt", prompt);
   form.append("size", size);

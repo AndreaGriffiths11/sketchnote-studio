@@ -23,14 +23,27 @@ Because this is a static page, the usual bring-your-own-key tradeoffs apply: the
 
 ## Providers
 
-Default is OpenAI's image API:
+Pick a provider in Settings. Two modes ship.
+
+### OpenAI (default)
 
 - `gpt-image-1` (default): best quality and can use your avatar as a reference. Needs a verified OpenAI organization.
 - `dall-e-3`: no organization verification, but it ignores the avatar and uses different sizes.
 
-Any OpenAI-compatible endpoint (Azure OpenAI, OpenRouter, a local proxy) works by changing the Base URL in Settings. The app calls `POST {baseUrl}/images/generations` and, when a reference image is set, `POST {baseUrl}/images/edits`, then decodes `data[0].b64_json`.
+Change the Base URL to point at any OpenAI-compatible endpoint (OpenRouter, a local proxy). The app calls `POST {baseUrl}/images/generations` and, when a reference image is set, `POST {baseUrl}/images/edits`, then decodes `data[0].b64_json`.
 
-If Generate reports that it could not reach the provider, the key was most likely rejected. Browsers hide the provider's error details on cross-origin failures, so the message stays generic.
+### Azure AI Foundry
+
+Use a `gpt-image` model you deployed in Azure AI Foundry (or Azure OpenAI). Switch the provider to Azure and fill in:
+
+- **Endpoint**: your resource URL, like `https://your-resource.cognitiveservices.azure.com`.
+- **Deployment name**: the name you gave the deployment, like `gpt-image-2`. The deployment is the model, so there is no separate model field.
+- **API version**: defaults to `2025-04-01-preview`.
+- **Key**: a resource key for that endpoint, entered the same way as any other key and kept in memory only.
+
+The app calls `POST {endpoint}/openai/deployments/{deployment}/images/{generations|edits}?api-version={version}` with an `api-key` header. Your avatar works as a reference with gpt-image deployments.
+
+If Generate reports that it could not reach the provider, the key or endpoint was most likely wrong. Browsers hide the provider's error details on cross-origin failures, so the message stays generic.
 
 ## Run locally
 

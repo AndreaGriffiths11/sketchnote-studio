@@ -729,7 +729,7 @@ async function callApi(url, init) {
     return b64;
   } catch (err) {
     if (err.name === "AbortError") throw new Error("Timed out after a few minutes. Try a lower quality or a smaller image size.");
-    if (err instanceof TypeError) throw new Error("Could not reach the provider. This usually means the key was rejected, or a setting (endpoint, deployment, or base URL) is wrong. Check your key and settings.");
+    if (err instanceof TypeError) throw new Error(`Could not reach the provider (${err.message}). Check the endpoint or base URL for a typo, and check any ad blocker, VPN, or firewall that might block the request.`);
     throw err;
   } finally {
     clearTimeout(timer);

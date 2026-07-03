@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Work Life Sketchnote Studio</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1f2328;
+    --muted: #59636e;
+    --border: #d1d9e0;
+    --panel: #f6f8fa;
+    --accent: #0969da;
+    --accent-soft: #ddf4ff;
+    --teal: #0f9b8e;
+    --yellow: #d4a72c;
+    --coral: #e5484d;
+    --purple: #8250df;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(31, 35, 40, 0.08), 0 1px 2px rgba(31, 35, 40, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117;
+      --fg: #e6edf3;
+      --muted: #9198a1;
+      --border: #3d444d;
+      --panel: #161b22;
+      --accent-soft: #121d2f;
+      --shadow: 0 1px 3px rgba(1, 4, 9, 0.5);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+  }
+  a { color: var(--accent); }
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 18px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .mark {
+    width: 26px; height: 26px; border-radius: 7px;
+    display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--teal), var(--accent));
+    color: #fff; font-size: 14px;
+  }
+  .brand { font-weight: 600; font-size: 15px; }
+  .brand small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+  .spacer { flex: 1; }
+  .ghost {
+    border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+    border-radius: 8px; cursor: pointer; padding: 6px 10px; font-size: 12px;
+  }
+  .ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Gate */
+  .gate { max-width: 520px; margin: 8vh auto; padding: 0 18px; text-align: center; }
+  .gate h1 { font-size: 24px; margin: 0 0 8px; }
+  .gate p { color: var(--muted); margin: 0 0 20px; }
+  .gate .box { display: flex; gap: 8px; }
+  .gate .box input {
+    flex: 1; padding: 11px 12px; font-size: 15px;
+    background: var(--bg); color: var(--fg);
+    border: 1px solid var(--border); border-radius: 10px;
+  }
+  .gate .box button {
+    padding: 11px 16px; border: none; border-radius: 10px; font-weight: 600; font-size: 15px;
+    background: linear-gradient(135deg, var(--teal), var(--accent)); color: #fff; cursor: pointer;
+  }
+  .gate .box button:disabled { opacity: 0.6; cursor: default; }
+  .gate .gatestatus { min-height: 20px; margin-top: 12px; font-size: 13px; color: var(--muted); }
+  .gate .gatestatus.err { color: var(--coral); }
+  .gate .skip { margin-top: 18px; font-size: 13px; }
+
+  /* App */
+  .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+    gap: 18px;
+    padding: 18px;
+    align-items: start;
+  }
+  @media (max-width: 860px) { .wrap { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    margin: 0 0 10px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  label { display: block; font-size: 12px; color: var(--muted); margin: 8px 0 4px; }
+  input, textarea, select {
+    width: 100%; padding: 7px 9px;
+    background: var(--bg); color: var(--fg);
+    border: 1px solid var(--border); border-radius: 8px;
+    font-family: inherit; font-size: 13px; line-height: 1.4;
+  }
+  textarea { resize: vertical; min-height: 64px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .collab { display: grid; grid-template-columns: 1fr 130px auto; gap: 6px; align-items: center; margin-bottom: 6px; }
+  .iconbtn {
+    border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+    border-radius: 8px; cursor: pointer; padding: 6px 9px; font-size: 13px;
+  }
+  .iconbtn:hover { border-color: var(--accent); color: var(--accent); }
+  .addbtn { margin-top: 4px; font-size: 12px; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .keycard { border-color: var(--accent); }
+
+  .side { position: sticky; top: 74px; }
+  .preview {
+    width: 100%; aspect-ratio: 4 / 3;
+    border: 1px dashed var(--border); border-radius: var(--radius);
+    background: var(--bg);
+    display: grid; place-items: center; overflow: hidden;
+    color: var(--muted); text-align: center; padding: 10px;
+  }
+  .preview img { width: 100%; height: 100%; object-fit: contain; }
+  .status { font-size: 12px; color: var(--muted); margin: 8px 0; min-height: 16px; }
+  .status.live { color: var(--accent); }
+  .status.err { color: var(--coral); }
+  .genrow { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+  .genbtn {
+    width: 100%; padding: 10px; border: none; border-radius: 10px;
+    background: linear-gradient(135deg, var(--teal), var(--accent));
+    color: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
+  }
+  .genbtn:disabled { opacity: 0.6; cursor: default; }
+  .dlbtn { padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--fg); cursor: pointer; font-size: 13px; }
+  .dlbtn:disabled { opacity: 0.5; cursor: default; }
+  .iters { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .pill {
+    border: 1px solid var(--border); background: var(--bg); color: var(--fg);
+    border-radius: 999px; padding: 5px 10px; font-size: 12px; cursor: pointer;
+  }
+  .pill:hover { border-color: var(--accent); }
+  .pill.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .promptbox {
+    margin-top: 12px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px;
+  }
+  .promptbox header { display: flex; justify-content: space-between; align-items: center; }
+  .promptbox h3 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+  pre#prompt {
+    margin: 8px 0 0; white-space: pre-wrap; word-break: break-word;
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 11.5px; line-height: 1.5; color: var(--fg);
+    max-height: 320px; overflow: auto;
+  }
+  .thumb { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+  .thumb img { width: 46px; height: 46px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="mark">◆</div>
+    <div class="brand">Work Life Sketchnote Studio<small>turn a GitHub profile into a whiteboard sketchnote</small></div>
+    <div class="spacer"></div>
+    <button class="ghost hidden" id="restart">Start over</button>
+  </div>
+
+  <!-- Gate: enter a GitHub handle to seed the studio -->
+  <div class="gate" id="gate">
+    <h1>Start with your GitHub handle</h1>
+    <p>We read your public profile, top languages, and repos to fill in a first draft. You edit everything, then generate the image with your own API key.</p>
+    <div class="box">
+      <input id="handle" placeholder="octocat" autocomplete="off" spellcheck="false" />
+      <button id="go">Build my draft</button>
+    </div>
+    <div class="gatestatus" id="gatestatus"></div>
+    <div class="skip"><a href="#" id="skip">Skip and start from a blank template</a></div>
+  </div>
+
+  <!-- App -->
+  <div class="wrap hidden" id="app">
+    <div id="editor"><!-- left column rendered by JS --></div>
+
+    <div class="side">
+      <div class="card">
+        <h2><span class="dot" style="background:var(--teal)"></span> Sketchnote preview</h2>
+        <div class="preview" id="preview"><span>No image yet. Add your key in Settings, then generate.</span></div>
+        <div class="status" id="status"></div>
+        <div class="genrow">
+          <button class="genbtn" id="gen">Generate image</button>
+          <button class="dlbtn" id="dl" disabled>Download</button>
+        </div>
+        <div class="hint">No key? Use Copy below and paste the prompt into any image tool.</div>
+
+        <div class="iters" id="iters"></div>
+
+        <div class="promptbox">
+          <header>
+            <h3>Image prompt</h3>
+            <button class="iconbtn" id="copy" style="padding:3px 8px;font-size:11px">Copy</button>
+          </header>
+          <pre id="prompt"></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+import { defaultState, buildPrompt, ITERATIONS } from "./prompt.js";
+
+const STATE_KEY = "sketchnote.state.v1";
+const SETTINGS_KEY = "sketchnote.settings.v1";
+const GEN_TIMEOUT_MS = 240000;
+
+const ITER_LABELS = {
+  "cuter": "Make it cuter",
+  "more-whiteboard": "More whiteboard sketch",
+  "more-professional": "More professional",
+  "reduce-text": "Reduce text",
+  "more-github": "More GitHub visuals",
+  "more-central": "Bigger central portrait",
+  "readability": "Improve readability",
+  "demo-ready": "Conference-demo ready",
+  "generic-collabs": "Generic collaborator icons",
+};
+
+const CLUSTER_COLORS = ["var(--accent)", "var(--coral)", "var(--yellow)", "var(--purple)", "var(--teal)"];
+
+let state = null;
+let saveTimer = null;
+let generating = false;
+let lastB64 = null;
+let apiKey = "";
+
+const $ = (sel, root = document) => root.querySelector(sel);
+const el = (tag, props = {}, kids = []) => {
+  const n = document.createElement(tag);
+  Object.assign(n, props);
+  for (const k of [].concat(kids)) n.append(k);
+  return n;
+};
+
+// ---- persistence ----
+
+function loadState() {
+  const raw = localStorage.getItem(STATE_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STATE_KEY, JSON.stringify(state));
+  } catch {
+    // Headshot data URLs are the large payload. Drop it so the rest survives.
+    const trimmed = { ...state, headshot: state.headshot ? { name: state.headshot.name, dataUrl: null } : null };
+    try { localStorage.setItem(STATE_KEY, JSON.stringify(trimmed)); } catch { /* give up quietly */ }
+  }
+}
+
+function loadSettings() {
+  const defaults = { baseUrl: "https://api.openai.com/v1", model: "gpt-image-1", quality: "high" };
+  const raw = localStorage.getItem(SETTINGS_KEY);
+  if (!raw) return defaults;
+  try {
+    const parsed = JSON.parse(raw);
+    return { baseUrl: parsed.baseUrl ?? defaults.baseUrl, model: parsed.model ?? defaults.model, quality: parsed.quality ?? defaults.quality };
+  } catch { return defaults; }
+}
+
+function saveSettings(settings) {
+  const safe = { baseUrl: settings.baseUrl, model: settings.model, quality: settings.quality };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(safe));
+}
+
+// ---- GitHub seeding ----
+
+function topLanguages(repos) {
+  const counts = {};
+  for (const r of repos) {
+    if (r.fork || !r.language) continue;
+    counts[r.language] = (counts[r.language] || 0) + 1;
+  }
+  return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+}
+
+function topTopics(repos) {
+  const counts = {};
+  for (const r of repos) {
+    if (r.fork) continue;
+    for (const t of r.topics || []) counts[t] = (counts[t] || 0) + 1;
+  }
+  return Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+}
+
+function ownRepoNames(repos) {
+  return repos.filter((r) => !r.fork).map((r) => r.name);
+}
+
+function stateFromGitHub(user, repos) {
+  const st = defaultState();
+  const languages = topLanguages(repos);
+  const topics = topTopics(repos);
+  const projects = ownRepoNames(repos);
+  const topLang = languages[0];
+
+  st.handle = user.login;
+  st.profile.name = user.name || user.login;
+  st.profile.title = topLang ? `${topLang} Developer` : "Developer";
+  st.profile.org = user.company ? user.company.replace(/^@/, "") : "Open source";
+  st.profile.roleSummary = (user.bio || `${user.login} on GitHub`).replace(/\s+/g, " ").trim();
+
+  if (languages.length) {
+    st.clusters[0].title = "Languages I use";
+    st.clusters[0].items = languages.slice(0, 7);
+  }
+  if (projects.length) {
+    st.clusters[1].title = "Projects I build";
+    st.clusters[1].items = projects.slice(0, 6);
+  }
+  if (topics.length) {
+    st.clusters[2].title = "What I focus on";
+    st.clusters[2].items = topics.slice(0, 7);
+  }
+
+  const themes = [...new Set([...topics, ...languages])].slice(0, 12);
+  if (themes.length) st.themes = themes;
+
+  const joined = user.created_at ? new Date(user.created_at).getFullYear() : null;
+  st.journey = [joined ? `Joined GitHub in ${joined}` : "Joined GitHub", "Building in public", "Open source"];
+
+  return st;
+}
+
+async function fetchJson(url) {
+  const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+  return { ok: res.ok, status: res.status, body: res.ok ? await res.json() : null };
+}
+
+async function avatarDataUrl(url) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
+function setGateStatus(text, isError) {
+  const node = $("#gatestatus");
+  node.textContent = text || "";
+  node.className = "gatestatus" + (isError ? " err" : "");
+}
+
+let seedRun = 0;
+
+async function seedFromGitHub(handle) {
+  const run = ++seedRun;
+  setGateStatus("Reading your GitHub profile...");
+  $("#go").disabled = true;
+  try {
+    const user = await fetchJson(`https://api.github.com/users/${encodeURIComponent(handle)}`);
+    if (run !== seedRun) return;
+    if (user.status === 404) { setGateStatus("No GitHub user with that handle. Check the spelling.", true); return; }
+    if (user.status === 403) { setGateStatus("GitHub rate limit hit for now. Try again in a few minutes, or skip and start blank.", true); return; }
+    if (!user.ok) { setGateStatus("Could not reach GitHub. Try again, or skip and start blank.", true); return; }
+
+    const repos = await fetchJson(`https://api.github.com/users/${encodeURIComponent(handle)}/repos?sort=pushed&per_page=100`);
+    if (run !== seedRun) return;
+    const nextState = stateFromGitHub(user.body, repos.ok ? repos.body : []);
+
+    setGateStatus("Fetching your avatar...");
+    const dataUrl = user.body.avatar_url ? await avatarDataUrl(user.body.avatar_url) : null;
+    if (run !== seedRun) return;
+    if (dataUrl) nextState.headshot = { name: `${user.body.login}-avatar.png`, dataUrl };
+
+    state = nextState;
+    saveState();
+    showApp();
+  } catch {
+    if (run === seedRun) setGateStatus("Could not reach GitHub. Try again, or skip and start blank.", true);
+  } finally {
+    if (run === seedRun) $("#go").disabled = false;
+  }
+}
+
+// ---- rendering ----
+
+function textareaLines(value, onChange) {
+  const ta = el("textarea", { value: value.join("\n") });
+  ta.rows = Math.min(Math.max(value.length, 2), 10);
+  ta.addEventListener("input", () => {
+    onChange(ta.value.split("\n").map((s) => s.trim()).filter(Boolean));
+    queueSave();
+  });
+  return ta;
+}
+
+function field(labelText, value, onChange, multiline) {
+  const wrap = el("div");
+  wrap.append(el("label", { textContent: labelText }));
+  const input = multiline ? el("textarea", { value }) : el("input", { value });
+  input.addEventListener("input", () => { onChange(input.value); queueSave(); });
+  wrap.append(input);
+  return wrap;
+}
+
+function settingsCard() {
+  const settings = loadSettings();
+  const card = el("div", { className: "card keycard" });
+  card.append(el("h2", {}, [el("span", { className: "dot", style: "background:var(--accent)" }), "Image API key (yours)"]));
+  card.append(el("div", { className: "hint", textContent: "Your key stays in memory in this tab and goes straight to the provider you pick. It never reaches this site's author or any server, and it is not written to disk, so a reload clears it." }));
+
+  const key = el("input", { type: "password", value: apiKey, placeholder: "sk-..." });
+  const keyWrap = el("div");
+  keyWrap.append(el("label", { textContent: "API key" }), key);
+  card.append(keyWrap);
+
+  const g = el("div", { className: "grid2" });
+  const base = el("input", { value: settings.baseUrl });
+  const baseWrap = el("div"); baseWrap.append(el("label", { textContent: "Base URL" }), base);
+  const model = el("input", { value: settings.model });
+  model.setAttribute("list", "models");
+  const modelWrap = el("div"); modelWrap.append(el("label", { textContent: "Model" }), model);
+  const quality = el("input", { value: settings.quality });
+  const qualityWrap = el("div"); qualityWrap.append(el("label", { textContent: "Quality" }), quality);
+  const dl = el("datalist", { id: "models" });
+  dl.append(el("option", { value: "gpt-image-1" }), el("option", { value: "dall-e-3" }));
+  g.append(baseWrap, modelWrap, qualityWrap, dl);
+  card.append(g);
+
+  key.addEventListener("input", () => { apiKey = key.value.trim(); });
+  const persist = () => saveSettings({ baseUrl: base.value.trim(), model: model.value.trim(), quality: quality.value.trim() });
+  for (const input of [base, model, quality]) input.addEventListener("input", persist);
+
+  card.append(el("div", { className: "hint", textContent: "gpt-image-1 uses your avatar and needs a verified OpenAI org. dall-e-3 needs no verification but ignores the avatar. OpenAI-compatible endpoints (Azure, OpenRouter) work by changing the base URL." }));
+  return card;
+}
+
+function renderEditor() {
+  const root = $("#editor");
+  root.textContent = "";
+
+  root.append(settingsCard());
+
+  const p = state.profile;
+  const profileCard = el("div", { className: "card" });
+  profileCard.append(el("h2", {}, [el("span", { className: "dot", style: "background:var(--teal)" }), "Central profile"]));
+  profileCard.append(el("div", { className: "row" }, [
+    field("Name", p.name, (v) => (p.name = v)),
+    field("Title", p.title, (v) => (p.title = v)),
+  ]));
+  profileCard.append(field("Organization", p.org, (v) => (p.org = v)));
+  profileCard.append(field("Role summary", p.roleSummary, (v) => (p.roleSummary = v), true));
+  profileCard.append(field("Visual likeness notes", p.likenessNotes, (v) => (p.likenessNotes = v), true));
+
+  const hs = el("div");
+  hs.append(el("label", { textContent: "Reference image (portrait)" }));
+  const file = el("input", { type: "file", accept: "image/*" });
+  file.addEventListener("change", () => uploadHeadshot(file.files[0]));
+  hs.append(file);
+  hs.append(el("div", { className: "thumb", id: "hsthumb" }));
+  profileCard.append(hs);
+
+  profileCard.append(el("div", { className: "row" }, [
+    field("Tone", p.tone, (v) => (p.tone = v)),
+    field("Audience", p.audience, (v) => (p.audience = v)),
+  ]));
+  profileCard.append(field("Output use case", p.useCase, (v) => (p.useCase = v)));
+  root.append(profileCard);
+
+  state.clusters.forEach((c, i) => {
+    const card = el("div", { className: "card" });
+    card.append(el("h2", {}, [el("span", { className: "dot", style: `background:${CLUSTER_COLORS[i % CLUSTER_COLORS.length]}` }), c.title || "Cluster"]));
+    card.append(field("Cluster title", c.title, (v) => (c.title = v)));
+    card.append(el("label", { textContent: "Items (one per line)" }));
+    card.append(textareaLines(c.items, (v) => (c.items = v)));
+    card.append(field("Icon and doodle suggestions", c.icons, (v) => (c.icons = v), true));
+    root.append(card);
+  });
+
+  const collabCard = el("div", { className: "card" });
+  collabCard.append(el("h2", {}, [el("span", { className: "dot", style: "background:var(--purple)" }), "Collaborators"]));
+  collabCard.append(el("div", { className: "hint", textContent: "Generic avatar icons only. Names become small labels, no invented faces. Leave empty to skip." }));
+  const list = el("div", { id: "collablist" });
+  const drawCollabs = () => {
+    list.textContent = "";
+    state.collaborators.forEach((c, i) => {
+      const name = el("input", { value: c.name, placeholder: "Name" });
+      name.addEventListener("input", () => { c.name = name.value; queueSave(); });
+      const rel = el("input", { value: c.relationship, placeholder: "Label" });
+      rel.addEventListener("input", () => { c.relationship = rel.value; queueSave(); });
+      const rm = el("button", { className: "iconbtn", textContent: "✕", title: "Remove" });
+      rm.addEventListener("click", () => { state.collaborators.splice(i, 1); drawCollabs(); queueSave(); });
+      list.append(el("div", { className: "collab" }, [name, rel, rm]));
+    });
+  };
+  drawCollabs();
+  collabCard.append(list);
+  const add = el("button", { className: "iconbtn addbtn", textContent: "+ Add collaborator" });
+  add.addEventListener("click", () => { state.collaborators.push({ name: "", relationship: "" }); drawCollabs(); queueSave(); });
+  collabCard.append(add);
+  root.append(collabCard);
+
+  const listCard = (title, color, key) => {
+    const card = el("div", { className: "card" });
+    card.append(el("h2", {}, [el("span", { className: "dot", style: `background:${color}` }), title]));
+    card.append(textareaLines(state[key], (v) => (state[key] = v)));
+    return card;
+  };
+  root.append(listCard("Values", "var(--coral)", "values"));
+  root.append(listCard("My journey (timeline order)", "var(--yellow)", "journey"));
+  root.append(listCard("Technologies + themes", "var(--accent)", "themes"));
+
+  const s = state.style;
+  const styleCard = el("div", { className: "card" });
+  styleCard.append(el("h2", {}, [el("span", { className: "dot", style: "background:var(--teal)" }), "Visual style controls"]));
+  const g = el("div", { className: "grid2" });
+  g.append(field("Style", s.style, (v) => (s.style = v)));
+  g.append(field("Detail level", s.detail, (v) => (s.detail = v)));
+  g.append(field("Portrait realism", s.realism, (v) => (s.realism = v)));
+  g.append(field("Background", s.background, (v) => (s.background = v)));
+  g.append(field("Accent colors", s.accents, (v) => (s.accents = v)));
+  g.append(field("Layout", s.layout, (v) => (s.layout = v)));
+  g.append(field("Text density", s.textDensity, (v) => (s.textDensity = v)));
+  g.append(field("Collaborator avatars", s.avatars, (v) => (s.avatars = v)));
+  g.append(field("Orientation", s.orientation, (v) => (s.orientation = v)));
+  g.append(field("Use case", s.useCase, (v) => (s.useCase = v)));
+  styleCard.append(g);
+  root.append(styleCard);
+
+  drawHeadshotThumb();
+}
+
+function drawHeadshotThumb() {
+  const thumb = $("#hsthumb");
+  if (!thumb) return;
+  thumb.textContent = "";
+  if (state.headshot && state.headshot.dataUrl) {
+    const img = el("img", { src: state.headshot.dataUrl, alt: "" });
+    const name = el("span", { className: "hint", textContent: state.headshot.name || "reference image" });
+    const clear = el("button", { className: "iconbtn", textContent: "Remove", style: "font-size:11px" });
+    clear.addEventListener("click", () => { state.headshot = null; saveState(); drawHeadshotThumb(); });
+    thumb.append(img, name, clear);
+  } else if (state.headshot && state.headshot.name) {
+    thumb.append(el("span", { className: "hint", textContent: `${state.headshot.name} (re-add to use as a reference)` }));
+  } else {
+    thumb.append(el("span", { className: "hint", textContent: "No reference yet. The portrait follows the likeness notes." }));
+  }
+}
+
+async function uploadHeadshot(fileObj) {
+  if (!fileObj) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.headshot = { name: fileObj.name, dataUrl: reader.result };
+    saveState();
+    drawHeadshotThumb();
+  };
+  reader.readAsDataURL(fileObj);
+}
+
+function renderIterations() {
+  const box = $("#iters");
+  box.textContent = "";
+  for (const [key, label] of Object.entries(ITER_LABELS)) {
+    const on = state.iterations.includes(key);
+    const b = el("button", { className: "pill" + (on ? " on" : ""), textContent: label });
+    b.addEventListener("click", () => {
+      if (state.iterations.includes(key)) state.iterations = state.iterations.filter((k) => k !== key);
+      else state.iterations = [...state.iterations, key];
+      renderIterations();
+      renderPrompt();
+      saveState();
+    });
+    box.append(b);
+  }
+}
+
+function renderPrompt() {
+  $("#prompt").textContent = buildPrompt(state);
+}
+
+function queueSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => { saveState(); renderPrompt(); }, 400);
+}
+
+// ---- generation (bring your own key) ----
+
+function imageSize(orientation, model) {
+  const o = String(orientation || "").toLowerCase();
+  const m = String(model || "").toLowerCase();
+  if (m.includes("dall-e-3")) {
+    if (o.includes("portrait")) return "1024x1792";
+    if (o.includes("landscape")) return "1792x1024";
+    return "1024x1024";
+  }
+  if (o.includes("portrait")) return "1024x1536";
+  if (o.includes("square")) return "1024x1024";
+  return "1536x1024";
+}
+
+function genBody(model, prompt, size, quality) {
+  const body = { model, prompt, size, n: 1 };
+  if (String(model || "").toLowerCase().includes("dall-e-3")) {
+    body.response_format = "b64_json";
+    body.quality = quality === "hd" ? "hd" : "standard";
+  } else {
+    body.quality = quality || "high";
+  }
+  return body;
+}
+
+async function apiError(res) {
+  const text = await res.text();
+  try { return JSON.parse(text)?.error?.message || text.slice(0, 300); }
+  catch { return text.slice(0, 300); }
+}
+
+async function callApi(url, init) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), GEN_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { method: "POST", signal: controller.signal, ...init });
+    if (!res.ok) throw new Error(await apiError(res));
+    const data = await res.json();
+    const b64 = data?.data?.[0]?.b64_json;
+    if (!b64) throw new Error("The provider returned no image data.");
+    return b64;
+  } catch (err) {
+    if (err.name === "AbortError") throw new Error("Timed out after a few minutes. Try a lower quality or a smaller image size.");
+    if (err instanceof TypeError) throw new Error("Could not reach the provider. This usually means the key was rejected, the base URL is wrong, or the request was blocked. Check your key and base URL.");
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function genText(settings, prompt, size) {
+  const url = `${settings.baseUrl.replace(/\/$/, "")}/images/generations`;
+  return callApi(url, {
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify(genBody(settings.model, prompt, size, settings.quality)),
+  });
+}
+
+async function genEdit(settings, prompt, size) {
+  const blob = await (await fetch(state.headshot.dataUrl)).blob();
+  const form = new FormData();
+  form.append("model", settings.model);
+  form.append("image", blob, state.headshot.name || "avatar.png");
+  form.append("prompt", prompt);
+  form.append("size", size);
+  form.append("n", "1");
+  form.append("quality", settings.quality || "high");
+  const url = `${settings.baseUrl.replace(/\/$/, "")}/images/edits`;
+  return callApi(url, { headers: { Authorization: `Bearer ${apiKey}` }, body: form });
+}
+
+function setStatus(text, kind) {
+  const node = $("#status");
+  node.textContent = text || "";
+  node.className = "status" + (kind ? " " + kind : "");
+}
+
+function showImage(b64) {
+  lastB64 = b64;
+  $("#preview").innerHTML = "";
+  $("#preview").append(el("img", { src: `data:image/png;base64,${b64}`, alt: "sketchnote" }));
+  $("#dl").disabled = false;
+}
+
+async function generate() {
+  const settings = loadSettings();
+  if (!apiKey) { setStatus("Add your image API key in Settings above, or use Copy to grab the prompt.", "err"); return; }
+  if (generating) return;
+
+  generating = true;
+  $("#gen").disabled = true;
+  setStatus("Generating your sketchnote. This can take a minute or two.", "live");
+  try {
+    const prompt = buildPrompt(state);
+    state.lastPrompt = prompt;
+    saveState();
+    const size = imageSize(state.style.orientation, settings.model);
+    const useHeadshot = Boolean(state.headshot && state.headshot.dataUrl) && !String(settings.model).toLowerCase().includes("dall-e");
+    const b64 = useHeadshot ? await genEdit(settings, prompt, size) : await genText(settings, prompt, size);
+    showImage(b64);
+    setStatus(useHeadshot ? "Done, drawn from your reference image." : "Done.", "");
+  } catch (err) {
+    setStatus(err.message || "Generation failed.", "err");
+  } finally {
+    generating = false;
+    $("#gen").disabled = false;
+  }
+}
+
+// ---- view switching ----
+
+function showApp() {
+  $("#gate").classList.add("hidden");
+  $("#app").classList.remove("hidden");
+  $("#restart").classList.remove("hidden");
+  renderEditor();
+  renderIterations();
+  renderPrompt();
+  lastB64 = null;
+  $("#dl").disabled = true;
+  $("#preview").innerHTML = "<span>No image yet. Add your key in Settings, then generate.</span>";
+  setStatus("");
+  setGateStatus("");
+}
+
+function showGate() {
+  $("#app").classList.add("hidden");
+  $("#restart").classList.add("hidden");
+  $("#gate").classList.remove("hidden");
+  setGateStatus("");
+  $("#go").disabled = false;
+  $("#handle").value = "";
+  $("#handle").focus();
+}
+
+// ---- wiring ----
+
+$("#go").addEventListener("click", () => {
+  const handle = $("#handle").value.trim().replace(/^@/, "");
+  if (handle) seedFromGitHub(handle);
+});
+$("#handle").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#go").click(); });
+$("#skip").addEventListener("click", (e) => { e.preventDefault(); seedRun++; state = defaultState(); saveState(); showApp(); });
+$("#restart").addEventListener("click", () => {
+  if (!confirm("Start over? Your current draft will be cleared. Your API key stays for this tab.")) return;
+  localStorage.removeItem(STATE_KEY);
+  state = null;
+  showGate();
+});
+$("#gen").addEventListener("click", generate);
+$("#dl").addEventListener("click", () => {
+  if (!lastB64) return;
+  const name = (state.handle || state.profile.name || "sketchnote").toString().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const a = el("a", { href: `data:image/png;base64,${lastB64}`, download: `sketchnote-${name || "me"}.png` });
+  document.body.append(a); a.click(); a.remove();
+});
+$("#copy").addEventListener("click", async () => {
+  await navigator.clipboard.writeText(buildPrompt(state));
+  const b = $("#copy"); b.textContent = "Copied"; setTimeout(() => (b.textContent = "Copy"), 1200);
+});
+
+// Boot: resume a saved draft, otherwise show the handle gate.
+// Strip any API key an older build may have persisted; keys live in memory only now.
+saveSettings(loadSettings());
+state = loadState();
+if (state) showApp(); else showGate();
+</script>
+</body>
+</html>

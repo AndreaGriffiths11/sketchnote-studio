@@ -44,6 +44,7 @@ export function defaultState() {
         values: ["Curiosity", "Open source", "Learning in public", "Shipping"],
         journey: ["Started coding", "First open source contribution", "Building in public"],
         themes: ["Open source", "Developer tools", "Automation", "Community"],
+        socials: [],
         style: {
             style: "cute whiteboard sketchnote",
             detail: "rich, information-dense",
@@ -104,6 +105,11 @@ export function buildPrompt(state) {
               .filter(Boolean)
               .join(", ")}.`;
 
+    const socials = state.socials || [];
+    const socialBlock = socials.length
+        ? `Show only these exact social handles, copied verbatim character for character, as small hand-lettered labels near ${p.name}, each with a matching platform doodle: ${socials.join(", ")}. Do not invent, complete, alter, or add any handle, username, or URL beyond this list.`
+        : `Do not show any social media handles, usernames, or URLs anywhere in the image. Leave them out rather than inventing any.`;
+
     const adjustments = state.iterations
         .map((key) => ITERATIONS[key])
         .filter(Boolean);
@@ -127,6 +133,7 @@ export function buildPrompt(state) {
         `Portrait:\n${p.likenessNotes}\nRender with ${s.realism}.`,
         `Composition:\nLayout is ${s.layout}. Place ${p.name} in the center with the title:\n"${p.name} - ${p.title}"\n\nSurround ${p.name} with connected visual clusters:\n\n${clusterBlocks}`,
         `Collaborators:\n${collabBlock}`,
+        `Social handles:\n${socialBlock}`,
         `Values:\nCreate a prominent values cluster for ${state.values.join(
             ", ",
         )}.\nRepresent each value with small hand-drawn icons and visual metaphors.`,

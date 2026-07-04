@@ -357,6 +357,11 @@ function stateFromGitHub(user, repos) {
   const joined = user.created_at ? new Date(user.created_at).getFullYear() : null;
   st.journey = [joined ? `Joined GitHub in ${joined}` : "Joined GitHub", "Building in public", "Open source"];
 
+  const socials = [`GitHub: @${user.login}`];
+  if (user.twitter_username) socials.push(`X: @${user.twitter_username}`);
+  if (user.blog) socials.push(`Web: ${user.blog}`);
+  st.socials = socials;
+
   return st;
 }
 
@@ -586,6 +591,7 @@ function renderEditor() {
   root.append(listCard("Values", "var(--coral)", "values"));
   root.append(listCard("My journey (timeline order)", "var(--yellow)", "journey"));
   root.append(listCard("Technologies + themes", "var(--accent)", "themes"));
+  root.append(listCard("Social handles (shown exactly, one per line)", "var(--accent)", "socials"));
 
   const s = state.style;
   const styleCard = el("div", { className: "card" });
@@ -853,6 +859,7 @@ $("#copy").addEventListener("click", async () => {
 // Strip any API key an older build may have persisted; keys live in memory only now.
 saveSettings(loadSettings());
 state = loadState();
+if (state) state = { ...defaultState(), ...state };
 if (state) showApp(); else showGate();
 </script>
 </body>
